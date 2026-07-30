@@ -2,18 +2,51 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api'; // <-- IMPORT API CONFIG
 
 const router = useRouter();
 const email = ref('');
 const fullName = ref('');
 const username = ref('');
 const password = ref('');
+const loading = ref(false);       // <-- STATE UNTUK LOADING
+const errorMessage = ref('');     // <-- STATE UNTUK PESAN ERROR
 
-const handleRegister = (e) => {
+const handleRegister = async (e) => {
   e.preventDefault();
-  // Nanti di sini kita akan panggil API Laravel
-  alert(`Register dengan: ${username.value}`);
-  router.push('/login'); // Redirect ke login setelah register (dummy)
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    // Kirim request ke Laravel API
+    // Catatan: Backend kita mengharapkan 'name', jadi kita map fullName.value ke name
+    const response = await api.post('/register', {
+      name: fullName.value,
+      email: email.value,
+      password: password.value,
+      password_confirmation: password.value, // Wajib sama dengan password untuk validasi Laravel
+    });
+    
+    // Simpan token & data user ke localStorage browser
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    
+    // Redirect ke halaman Home jika berhasil
+    router.push('/'); 
+  } catch (error) {
+    // Tangkap error validasi dari Laravel (misal: email sudah terdaftar)
+    if (error.response && error.response.data.errors) {
+      const errors = error.response.data.errors;
+      // Ambil pesan error pertama yang muncul (misal: "The email has already been taken.")
+      errorMessage.value = Object.values(errors)[0][0];
+    } else if (error.response && error.response.data.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Terjadi kesalahan koneksi. Pastikan server Laravel berjalan di port 8000.';
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -23,12 +56,12 @@ const handleRegister = (e) => {
       
       <!-- Card Utama -->
       <div class="bg-white border border-gray-300 rounded-sm p-8 flex flex-col items-center">
-        <!-- Logo -->
+        <!-- Logo Custom Anda -->
         <h1
-        class="text-5xl font-black mb-8 leading-[1.3] pb-2 bg-gradient-to-r from-[#4FACFE] via-[#0095F6] to-[#0057D9] bg-clip-text text-transparent"
-        style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;"
+          class="text-5xl font-black mb-8 leading-[1.3] pb-2 bg-gradient-to-r from-[#4FACFE] via-[#0095F6] to-[#0057D9] bg-clip-text text-transparent"
+          style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;"
         >
-        InstaApp
+          InstaApp
         </h1>
         <p class="text-gray-500 font-semibold text-sm text-center mb-6">Sign up to see photos and videos from your friends.</p>
         
@@ -73,18 +106,27 @@ const handleRegister = (e) => {
             class="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2 text-xs focus:outline-none focus:border-gray-400 placeholder-gray-500"
             required
           >
+          
           <p class="text-xs text-gray-500 text-center mt-4 mb-2">
             People who use our service may have uploaded your contact information to Instagram. <a href="#" class="text-[#00376b]">Learn More</a>
           </p>
           <p class="text-xs text-gray-500 text-center mb-4">
             By signing up, you agree to our <a href="#" class="text-[#00376b]">Terms</a>, <a href="#" class="text-[#00376b]">Privacy Policy</a> and <a href="#" class="text-[#00376b]">Cookies Policy</a>.
           </p>
+
+          <!-- PESAN ERROR (Muncul jika registrasi gagal, misal email sudah dipakai) -->
+          <p v-if="errorMessage" class="text-red-500 text-xs text-center mb-2 font-medium">
+            {{ errorMessage }}
+          </p>
+
           <button 
             type="submit"
-            class="w-full bg-[#0095F6] text-white font-semibold py-1.5 rounded text-sm hover:bg-[#1877F2] transition disabled:opacity-50"
-            :disabled="!email || !fullName || !username || !password"
+            class="w-full bg-[#0095F6] text-white font-semibold py-1.5 rounded text-sm hover:bg-[#1877F2] transition disabled:opacity-50 flex justify-center items-center"
+            :disabled="!email || !fullName || !username || !password || loading"
           >
-            Sign up
+            <!-- Teks berubah jadi Loading... saat proses berjalan -->
+            <span v-if="loading">Loading...</span>
+            <span v-else>Sign up</span>
           </button>
         </form>
       </div>

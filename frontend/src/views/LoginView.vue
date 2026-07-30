@@ -2,16 +2,42 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api'; // <-- IMPORT API CONFIG
 
 const router = useRouter();
 const username = ref('');
 const password = ref('');
+const loading = ref(false);       // <-- STATE UNTUK LOADING
+const errorMessage = ref('');     // <-- STATE UNTUK PESAN ERROR
 
-const handleLogin = (e) => {
+const handleLogin = async (e) => {
   e.preventDefault();
-  // Nanti di sini kita akan panggil API Laravel
-  alert(`Login dengan: ${username.value}`);
-  router.push('/'); // Redirect ke home setelah login
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    // Kirim request ke Laravel API
+    const response = await api.post('/login', {
+      email: username.value, // Backend mengharapkan 'email', user bisa input email/username di sini
+      password: password.value,
+    });
+    
+    // Simpan token & data user ke localStorage browser
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    
+    // Redirect ke halaman Home jika berhasil
+    router.push('/'); 
+  } catch (error) {
+    // Tangkap error dari Laravel (misal: password salah)
+    if (error.response && error.response.data.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Terjadi kesalahan koneksi. Pastikan server Laravel berjalan di port 8000.';
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -23,13 +49,12 @@ const handleLogin = (e) => {
       <!-- Kolom 1: Teks dengan Gradasi & Gambar (Kiri) -->
       <div class="hidden md:flex flex-col items-center justify-center px-8 text-center">
         <h2 class="text-4xl lg:text-5xl text-gray-800 font-serif leading-snug mb-8 text-left">
-        <div class="italic">
-            See everyday moments from your
-        </div>
-
-        <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 bg-clip-text text-transparent font-bold not-italic">
-            close friends.
-        </div>
+          <div class="italic">
+              See everyday moments from your
+          </div>
+          <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 bg-clip-text text-transparent font-bold not-italic">
+              close friends.
+          </div>
         </h2>
         
         <!-- Gambar Ilustrasi -->
@@ -47,13 +72,13 @@ const handleLogin = (e) => {
       <div class="w-full max-w-[350px] mx-auto flex flex-col space-y-3 md:col-start-3">
         <!-- Card Utama -->
         <div class="bg-white border border-gray-300 rounded-sm p-8 flex flex-col items-center">
-          <!-- Logo -->
-            <h1
+          <!-- Logo Custom Anda -->
+          <h1
             class="text-5xl font-black mb-8 leading-[1.3] pb-2 bg-gradient-to-r from-[#4FACFE] via-[#0095F6] to-[#0057D9] bg-clip-text text-transparent"
             style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;"
-            >
+          >
             InstaApp
-            </h1>
+          </h1>
           
           <form @submit="handleLogin" class="w-full space-y-2">
             <input 
@@ -70,12 +95,20 @@ const handleLogin = (e) => {
               class="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2 text-xs focus:outline-none focus:border-gray-400 placeholder-gray-500"
               required
             >
+
+            <!-- PESAN ERROR (Muncul jika login gagal) -->
+            <p v-if="errorMessage" class="text-red-500 text-xs text-center mt-3 mb-1 font-medium">
+              {{ errorMessage }}
+            </p>
+
             <button 
               type="submit"
-              class="w-full bg-[#0095F6] text-white font-semibold py-1.5 rounded text-sm mt-4 hover:bg-[#1877F2] transition disabled:opacity-50"
-              :disabled="!username || !password"
+              class="w-full bg-[#0095F6] text-white font-semibold py-1.5 rounded text-sm mt-4 hover:bg-[#1877F2] transition disabled:opacity-50 flex justify-center items-center"
+              :disabled="!username || !password || loading"
             >
-              Log in
+              <!-- Teks berubah jadi Loading... saat proses berjalan -->
+              <span v-if="loading">Loading...</span>
+              <span v-else>Log in</span>
             </button>
           </form>
 
