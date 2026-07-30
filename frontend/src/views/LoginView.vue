@@ -49,7 +49,7 @@ const handleLogin = (e) => {
         <div class="bg-white border border-gray-300 rounded-sm p-8 flex flex-col items-center">
           <!-- Logo -->
             <h1
-            class="text-5xl mb-8 bg-gradient-to-r from-[#4FACFE] via-[#0095F6] to-[#0057D9] bg-clip-text text-transparent"
+            class="text-5xl font-black mb-8 leading-[1.3] pb-2 bg-gradient-to-r from-[#4FACFE] via-[#0095F6] to-[#0057D9] bg-clip-text text-transparent"
             style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;"
             >
             InstaApp
