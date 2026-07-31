@@ -3,10 +3,15 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:5173'], 
+
+    // GUNAKAN BINTANG (*) DULU UNTUK MEMASTIKAN TIDAK ADA BLOKIR
+    'allowed_origins' => ['*'],
+
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => true, 
+
+    // WAJIB FALSE KARENA KITA PAKAI BEARER TOKEN DI LOCALSTORAGE
+    'supports_credentials' => false,
 ];

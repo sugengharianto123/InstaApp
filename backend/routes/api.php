@@ -6,11 +6,18 @@ use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\StoryController;
+use App\Http\Controllers\Api\FollowController;
 use Illuminate\Support\Facades\Route;
 
 // Route Publik
-Route::post('/register', [AuthController::class, 'register']);
+
+
+// Route Auth (Tanpa middleware auth:sanctum)
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+
+// Route lainnya...
+Route::get('/users/suggested', [UserController::class, 'suggested']);
 
 // Route Privat (Wajib Login)
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // User
-    Route::get('/users/suggested', [UserController::class, 'suggested']);
+
     Route::get('/users/me', [UserController::class, 'profile']);
     Route::get('/users/me/posts', [UserController::class, 'myPosts']);
     Route::put('/users/me', [UserController::class, 'update']);
@@ -45,6 +52,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/stories', [StoryController::class, 'store']);
     Route::delete('/stories/{story}', [StoryController::class, 'destroy']);
     Route::post('/stories/cleanup', [StoryController::class, 'cleanupExpired']);
+
+    // Followers & Following Lists
+    Route::get('/users/{id}/followers', [UserController::class, 'followers']);
+    Route::get('/users/{id}/following', [UserController::class, 'following']);
+
+    Route::post('/users/{user}/follow', [FollowController::class, 'toggleFollow']);
+    Route::get('/users/{user}/follow-status', [FollowController::class, 'checkStatus']);
+});
+
+// ROUTE KHUSUS UNTUK DEBUG 
+Route::get('/debug-users', function () {
+    return \App\Models\User::select('id', 'username', 'name')->get();
 });
 
 

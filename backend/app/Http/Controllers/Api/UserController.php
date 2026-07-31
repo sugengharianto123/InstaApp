@@ -14,18 +14,29 @@ class UserController extends Controller
     // Ambil semua user KECUALI user yang sedang login (untuk suggested)
     public function suggested()
     {
-        $users = User::where('id', '!=', Auth::id())
-            // PERUBAHAN 1: Tambahkan 'username' di sini
-            ->select('id', 'username', 'name', 'email', 'avatar', 'bio')
-            ->get();
+        $authId = Auth::id();
 
-        // Format URL avatar
-        $users->transform(function ($user) {
-            if ($user->avatar) {
-                $user->avatar = asset('storage/' . $user->avatar);
-            }
-            return $user;
-        });
+        // 1. EKSKLUSI user yang sedang login
+        $users = User::where('id', '!=', $authId)
+            ->select('id', 'username', 'name', 'avatar', 'bio')
+            ->inRandomOrder()
+            ->limit(5)
+            ->get()
+            ->map(function ($user) use ($authId) {
+                $data = $user->toArray();
+
+                // Format avatar
+                if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                    $data['avatar'] = asset('storage/' . $user->avatar);
+                } else {
+                    $data['avatar'] = null;
+                }
+
+                // Cek status follow
+                $data['is_following'] = Auth::check() ? Auth::user()->isFollowing($user) : false;
+
+                return $data;
+            });
 
         return response()->json($users);
     }
@@ -34,9 +45,17 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
+
+        // Ubah model menjadi array terlebih dahulu
         $userData = $user->toArray();
 
-        if ($user->avatar) {
+        // WAJIB: Tambahkan hitungan followers & following secara eksplisit
+        // Karena Laravel tidak otomatis mengirim count relasi unless diminta
+        $userData['followers_count'] = $user->followers()->count();
+        $userData['following_count'] = $user->following()->count();
+
+        // Format URL avatar jika ada
+        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
             $userData['avatar'] = asset('storage/' . $user->avatar);
         }
 
@@ -105,6 +124,86 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Profil berhasil diperbarui',
             'user' => $userData
+        ]);
+    }
+    // Dapatkan daftar followers user
+    // Dapatkan daftar followers user
+    public function followers($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Query eksplisit: cari di tabel 'follows' di mana following_id = $id
+        $followers = User::whereIn('id', function ($query) use ($id) {
+            $query->select('follower_id')
+                ->from('follows')
+                ->where('following_id', $id);
+        })
+            ->select('id', 'username', 'name', 'avatar', 'bio')
+            ->latest()
+            ->get()
+            ->map(function ($user) {
+                $data = $user->toArray();
+                if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                    $data['avatar'] = asset('storage/' . $user->avatar);
+                } else {
+                    $data['avatar'] = null;
+                }
+
+                // Cek apakah user yang login sedang follow user ini
+                $data['is_following'] = Auth::check() && Auth::id() !== $user->id
+                    ? Auth::user()->isFollowing($user)
+                    : false;
+
+                return $data;
+            });
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'name' => $user->name,
+            ],
+            'followers' => $followers
+        ]);
+    }
+
+    // Dapatkan daftar following user
+    public function following($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Query eksplisit: cari di tabel 'follows' di mana follower_id = $id
+        $following = User::whereIn('id', function ($query) use ($id) {
+            $query->select('following_id')
+                ->from('follows')
+                ->where('follower_id', $id);
+        })
+            ->select('id', 'username', 'name', 'avatar', 'bio')
+            ->latest()
+            ->get()
+            ->map(function ($user) {
+                $data = $user->toArray();
+                if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                    $data['avatar'] = asset('storage/' . $user->avatar);
+                } else {
+                    $data['avatar'] = null;
+                }
+
+                // Cek apakah user yang login sedang follow user ini
+                $data['is_following'] = Auth::check() && Auth::id() !== $user->id
+                    ? Auth::user()->isFollowing($user)
+                    : false;
+
+                return $data;
+            });
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'name' => $user->name,
+            ],
+            'following' => $following
         ]);
     }
 }

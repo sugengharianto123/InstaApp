@@ -15,7 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'username',  
+        'username',
         'avatar',
         'bio',
     ];
@@ -53,5 +53,23 @@ class User extends Authenticatable
     public function hasLiked(Post $post)
     {
         return $this->likes()->where('post_id', $post->id)->exists();
+    }
+
+    // Relasi Following (user yang saya follow)
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+
+    // Relasi Followers (user yang follow saya)
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
+    // Cek apakah saya follow user tertentu (HANYA ADA 1 KALI DI SINI)
+    public function isFollowing(User $user)
+    {
+        return $this->following()->where('following_id', $user->id)->exists();
     }
 }
