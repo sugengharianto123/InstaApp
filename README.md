@@ -28,7 +28,6 @@ InstaApp adalah aplikasi media sosial sederhana yang terinspirasi dari Instagram
 - Menambahkan caption
 - Menampilkan daftar postingan
 - Melihat detail postingan
-- Menghapus postingan milik sendiri
 
 ### Like
 
@@ -46,7 +45,6 @@ InstaApp adalah aplikasi media sosial sederhana yang terinspirasi dari Instagram
 
 - Membuat story
 - Melihat story pengguna lain
-- Menghapus story milik sendiri
 
 ### Authorization
 
