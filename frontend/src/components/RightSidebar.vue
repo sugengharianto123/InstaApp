@@ -31,8 +31,8 @@ onMounted(async () => {
           alt="profile"
         >
         <div>
-          <p class="font-semibold text-sm text-gray-800">{{ currentUser.name }}</p>
-          <p class="text-sm text-gray-500">{{ currentUser.email }}</p>
+          <p class="font-semibold text-sm text-gray-800">{{ currentUser.username }}</p>
+          <p class="text-sm text-gray-500">{{ currentUser.name }}</p>
         </div>
       </div>
       <button class="text-xs font-semibold text-blue-500 hover:text-blue-700">
@@ -62,7 +62,7 @@ onMounted(async () => {
               :alt="user.name"
             >
             <div>
-              <p class="text-sm font-semibold text-gray-800">{{ user.name }}</p>
+              <p class="text-sm font-semibold text-gray-800">{{ user.username }}</p>
               <p class="text-xs text-gray-500">Suggested for you</p>
             </div>
           </div>

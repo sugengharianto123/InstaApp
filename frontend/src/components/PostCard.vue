@@ -63,7 +63,8 @@ const openCommentsModal = () => {
           class="w-8 h-8 rounded-full object-cover border border-gray-200" 
           alt="avatar"
         >
-        <span class="font-semibold text-sm text-gray-800">{{ post.user?.name }}</span>
+        
+        <span class="font-semibold text-sm text-gray-800">{{ post.user?.username || post.user?.name }}</span>
       </div>
       <button class="text-gray-600 hover:text-gray-900">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,15 +103,15 @@ const openCommentsModal = () => {
       <p class="font-semibold text-sm text-gray-800 mb-1">{{ likesCount }} suka</p>
 
       <!-- Caption -->
-      <p class="text-sm text-gray-800 mb-2">
-        <span class="font-semibold mr-2">{{ post.user?.name }}</span>
-        {{ post.caption }}
+      <p v-if="post.caption" class="text-sm text-gray-800 mb-2">
+        <span class="font-semibold mr-2">{{ post.user?.username || post.user?.name }}</span>
+        <span>{{ post.caption }}</span>
       </p>
 
-      <!-- BATASI: Tampilkan maksimal 2 komentar -->
+      <!-- Tampilkan maksimal 2 komentar -->
       <div class="space-y-1 mb-2" v-if="comments.length > 0">
         <p v-for="comment in comments.slice(0, 2)" :key="comment.id" class="text-sm text-gray-800">
-          <span class="font-semibold mr-2">{{ comment.user?.name }}</span>
+          <span class="font-semibold mr-2">{{ comment.user?.username}}</span>
           {{ comment.content }}
         </p>
       </div>

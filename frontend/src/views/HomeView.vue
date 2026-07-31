@@ -6,12 +6,16 @@ import PostCard from '../components/PostCard.vue';
 import CommentModal from '../components/CommentModal.vue';
 import StoriesBar from '../components/StoriesBar.vue';
 import RightSidebar from '../components/RightSidebar.vue';
+import CreateStoryModal from '../components/CreateStoryModal.vue'; // <-- PASTIKAN INI ADA
 import api from '../api';
 
 const posts = ref([]);
 const loading = ref(true);
 const selectedPost = ref(null);
 const isCommentModalOpen = ref(false);
+
+// State untuk Modal Story
+const isStoryModalOpen = ref(false); 
 
 const fetchPosts = async () => {
   try {
@@ -39,13 +43,21 @@ const closeCommentModal = () => {
   selectedPost.value = null;
 };
 
+// Fungsi saat story berhasil dibuat
+const handleStoryCreated = () => {
+  isStoryModalOpen.value = false;
+  // Opsional: refresh halaman atau stories bar di sini jika perlu
+};
+
 onMounted(() => {
   fetchPosts();
 });
 </script>
 
 <template>
-  <AppLayout @post-created="addNewPost">
+  <!-- PERHATIKAN: Tambahkan @open-story-modal di sini -->
+  <AppLayout @post-created="addNewPost" @open-story-modal="isStoryModalOpen = true">
+    
     <!-- Layout 2 Kolom: Feed + Sidebar -->
     <div class="flex w-full">
       
@@ -90,5 +102,13 @@ onMounted(() => {
       :post="selectedPost"
       @close="closeCommentModal"
     />
+
+    <!-- Create Story Modal (WAJIB ADA AGAR TOMBOL STORY BERFUNGSI) -->
+    <CreateStoryModal 
+      :is-open="isStoryModalOpen"
+      @close="isStoryModalOpen = false"
+      @created="handleStoryCreated"
+    />
+
   </AppLayout>
 </template>
