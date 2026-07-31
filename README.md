@@ -252,18 +252,6 @@ POST   /users/{user}/follow
 GET    /users/{user}/follow-status
 ```
 
-## Screenshot
-
-Tambahkan screenshot aplikasi pada bagian berikut:
-
-- Halaman Login
-- Halaman Register
-- Halaman Home
-- Halaman Profile
-- Halaman Create Post
-- Halaman Story
-- Halaman Comment
-
 ## Pemenuhan Requirement
 
 | Requirement                 | Status  |
